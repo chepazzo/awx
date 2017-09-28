@@ -169,6 +169,13 @@
     dest: "{{ docker_base_path }}/Makefile"
   delegate_to: localhost
 
+- name: Stage custom_files
+  copy:
+    src: custom_files/
+    dest: "{{ docker_base_path }}/custom_files"
+  delegate_to: localhost
+  when: custom_files|length > 0
+
 - name: State ansible repo
   copy:
     src: 'ansible.repo'

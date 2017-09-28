@@ -175,6 +175,18 @@
       - postgres
   when: pg_hostname is not defined or pg_hostname == ''
 
+- name: Set volume for custom projects directory in task container
+  set_fact:
+    volumes_projects_dir: 
+    - "{{ custom_projects_dir }}:/var/lib/awx/projects"
+  when: custom_projects_dir is defined
+
+- name: Set volume for custom ansible directory in task container
+  set_fact:
+    volumes_ansible_dir: 
+    - "{{ custom_ansible_dir }}:/etc/ansible"
+  when: custom_ansible_dir is defined
+
 - name: Activate AWX Web Container
   docker_container:
     name: awx_web
@@ -186,6 +198,7 @@
       - "{{ host_port }}:8052"
     links: "{{ awx_web_container_links|list }}"
     hostname: awxweb
+    volumes: "{{ web_volumes|default([])|list + volumes_projects_dir|default([])|list}}"
     env:
       http_proxy: "{{ http_proxy | default('') }}"
       https_proxy: "{{ https_proxy | default('') }}"
@@ -215,6 +228,7 @@
     links: "{{ awx_task_container_links|list }}"
     user: root
     hostname: awx
+    volumes: "{{ task_volumes|default([])|list + volumes_ansible_dir|default([])|list + volumes_projects_dir|default([])|list}}"
     env:
       http_proxy: "{{ http_proxy | default('') }}"
       https_proxy: "{{ https_proxy | default('') }}"

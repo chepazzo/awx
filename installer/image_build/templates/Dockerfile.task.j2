@@ -1,6 +1,18 @@
 FROM {{ awx_web_image }}:{{ awx_version }}
 USER 0
 RUN sudo yum -y remove nginx
+
+{% if custom_pip_packages|list|length > 0 %}
+RUN sudo pip install {{ custom_pip_packages|list|join(" ") }}
+{% endif %}
+{% for custom_file in custom_files|list %}
+
+{% if custom_yum_packages|list|length > 0 %}
+RUN yum -y install {{ custom_yum_packages|list|join(" ") }}
+{% endif %}
+
+ADD custom_files/{{ custom_file.src }} {{ custom_file.dst }}
+{% endfor %}
 USER 1000
 EXPOSE 8052
 CMD /usr/bin/launch_awx_task.sh
